@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 # Third party libraries
 import cv2
 import numpy as np
+from numpy.lib.function_base import append
 import pandas as pd
 
 IMG_SHAPE = (4000, 2672)
@@ -34,15 +35,61 @@ def init_hparams():
     hparams.image_size = [int(size) for size in hparams.image_size]
     return hparams
 
-def load_data(test_size):
-    # TO BE DONE: Need to split data into test image folder and test.csv
-    data = pd.read_csv("data/train.csv")
-    
-    return data
+def load_split_dataset(frac: float=0.05) -> pd.DataFrame:
 
-def read_image(image_path):
+    data = pd.read_csv("data/data.csv")
+    test = data.sample(frac=frac).reset_index()
+    train = data
+    for index in test['index'].values:
+        train = train.drop([index])
+    train = train.reset_index(drop=True)
+    test = test.drop(columns=['index'])
+    test.to_csv("data/test.csv", index=False)
+    train.to_csv("data/train.csv", index=False)
+    print(len(data), len(train), len(test))
+    return train, test
+
+def read_image(image_path: str) -> np.ndarray:
     return cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
 
-def load_model(model_path):
-    #TO BE DONE
-    return None
+
+def normalise_from_dataset_disjoint(dataset: pd.DataFrame) -> pd.DataFrame:
+    columns = ['image']
+    labels = dataset['labels'].value_counts().index.tolist()
+        
+    columns.extend(labels)
+    data = []
+
+    for image, label in zip(dataset['image'], dataset['labels']):
+        labelpos = columns.index(label)
+        row = [image]
+        for _ in labels: row.append(0)
+        row[labelpos] =  1
+        data.append(row)
+    
+        return pd.DataFrame(data, columns=columns)
+    
+
+def normalise_from_dataset_joint(dataset: pd.DataFrame) -> pd.DataFrame:
+    columns = ['image']
+    labels = dataset['labels'].value_counts().index.tolist()
+    basic_labels = set()   
+    for label in labels:
+         for word in label.split():
+             basic_labels.add(word)
+
+    columns.extend(basic_labels)
+    data = []
+
+    for image, labels in zip(dataset['image'], dataset['labels']):
+
+        row = [image]
+        real_labels = labels.split()
+        for _ in basic_labels: row.append(0)
+        for real_label in real_labels:
+            labelpos = columns.index(real_label)
+        row[labelpos] =  1
+        data.append(row)
+    
+        return pd.DataFrame(data, columns=columns)
+    
