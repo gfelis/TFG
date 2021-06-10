@@ -2,3 +2,4 @@ data/train_images
 data/test_images
 .vscode/
 __pycache__
+out/

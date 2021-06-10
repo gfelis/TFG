@@ -16,9 +16,9 @@ bleach=3.3.0=pyhd3eb1b0_0
 blinker=1.4=py37_0
 brotlipy=0.7.0=py37h7b6447c_1000
 c-ares=1.17.1=h27cfd23_0
-ca-certificates=2021.4.13=h06a4308_1
+ca-certificates=2021.5.25=h06a4308_1
 cachetools=4.1.1=py_0
-certifi=2020.12.5=py37h06a4308_0
+certifi=2021.5.30=py37h06a4308_0
 cffi=1.14.5=py37h261ae71_0
 chardet=3.0.4=py37_1003
 click=7.1.2=py_0
@@ -114,6 +114,7 @@ pexpect=4.8.0=pyhd3eb1b0_3
 pickleshare=0.7.5=pyhd3eb1b0_1003
 pillow=8.2.0=py37he98fc37_0
 pip=21.0.1=py37h06a4308_0
+plotly=4.14.3=py_0
 prometheus_client=0.10.1=pyhd3eb1b0_0
 prompt-toolkit=3.0.17=pyh06a4308_0
 protobuf=3.14.0=py37h2531618_1
@@ -138,6 +139,7 @@ qt=5.9.7=h5867ecd_1
 readline=8.1=h27cfd23_0
 requests=2.24.0=py_0
 requests-oauthlib=1.3.0=py_0
+retrying=1.3.3=py37_2
 rsa=4.6=py_0
 scikit-learn=0.24.2=py37ha9443f7_0
 scipy=1.6.2=py37had2a1c9_1

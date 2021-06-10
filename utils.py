@@ -1,11 +1,14 @@
 # Standard libraries
 from argparse import ArgumentParser
+import random
+import sys
 
 # Third party libraries
 import cv2
 import numpy as np
 from numpy.lib.function_base import append
 import pandas as pd
+
 
 IMG_SHAPE = (4000, 2672)
 TRAIN_IMAGES_FOLDER = "data/train_images/"
@@ -35,10 +38,15 @@ def init_hparams():
     hparams.image_size = [int(size) for size in hparams.image_size]
     return hparams
 
-def load_split_dataset(frac: float=0.05) -> pd.DataFrame:
+def seed_reproducer(seed=2021):
+    np.random.seed(seed)
+    random.seed(seed)
 
+def load_split_dataset(frac: float=0.05) -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]":
     data = pd.read_csv("data/data.csv")
-    test = data.sample(frac=frac).reset_index()
+    seed_reproducer()
+    state = random.randint(0, 10000)
+    test = data.sample(frac=frac, random_state=state).reset_index()
     train = data
     for index in test['index'].values:
         train = train.drop([index])
@@ -46,8 +54,7 @@ def load_split_dataset(frac: float=0.05) -> pd.DataFrame:
     test = test.drop(columns=['index'])
     test.to_csv("data/test.csv", index=False)
     train.to_csv("data/train.csv", index=False)
-    print(len(data), len(train), len(test))
-    return train, test
+    return data, train, test
 
 def read_image(image_path: str) -> np.ndarray:
     return cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
@@ -67,9 +74,9 @@ def normalise_from_dataset_disjoint(dataset: pd.DataFrame) -> pd.DataFrame:
         row[labelpos] =  1
         data.append(row)
     
-        return pd.DataFrame(data, columns=columns)
+    return pd.DataFrame(data, columns=columns)
     
-
+#BUG: creates rust class with 0 occurrences in all datasets
 def normalise_from_dataset_joint(dataset: pd.DataFrame) -> pd.DataFrame:
     columns = ['image']
     labels = dataset['labels'].value_counts().index.tolist()
@@ -91,5 +98,5 @@ def normalise_from_dataset_joint(dataset: pd.DataFrame) -> pd.DataFrame:
         row[labelpos] =  1
         data.append(row)
     
-        return pd.DataFrame(data, columns=columns)
+    return pd.DataFrame(data, columns=columns)
     
