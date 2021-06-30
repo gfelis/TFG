@@ -16,14 +16,40 @@ def random_sample_test(model, sample_len=10):
     test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in random.sample(list(norm_test['image'].values), sample_len)]
     test_images = [read_image(path) for path in test_images_paths]
     
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        for image, index in zip(test_images, range(len(test_images))):  
+    for index, image in enumerate(test_images):  
             prediction = predict(image, model)
             accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
-            print(accuracy, label_predicted)
             image_id = test_images_paths[index].split("/")[3]
-            print(norm_test.loc[norm_test['image'] == image_id])
+            print(f'Image with id: {image_id} is predicted as: {label_predicted} with {accuracy} accuracy.')
+            expected_class = data.loc[data['image'] == image_id]['labels'].values
+            print(f'Image with id: {image_id} expected class is: {expected_class}.')
+
+# To implement, how to count multiple predicted classes
+def full_test_joint(model):
+    test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in (list(norm_test['image'].values))]
+    test_images = [read_image(path) for path in test_images_paths]
+    for index, image in enumerate(test_images):
+            prediction = predict(image, model)
+            accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
+            image_id = test_images_paths[index].split("/")[3]
+            expected_classes = data.loc[data['image'] == image_id]['labels'].values
+            print('====================')
+            print(f'Predicted: {label_predicted} with {accuracy}, other predictions: {rest}')
+            print(f'Correct labels are: {expected_classes} ')
+            
+def random_sample_test_joint(model, sample_len=10):
+    test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in random.sample(list(norm_test['image'].values), sample_len)]
+    test_images = [read_image(path) for path in test_images_paths]
     
+    for index, image in enumerate(test_images):  
+            prediction = predict(image, model)
+            accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
+            image_id = test_images_paths[index].split("/")[3]
+            expected_classes = data.loc[data['image'] == image_id]['labels'].values
+            print('====================')
+            print(f'Predicted: {label_predicted} with {accuracy}, other predictions: {rest}')
+            print(f'Correct labels are: {expected_classes} ')
+
 
 if __name__ == "__main__":
     data, train, test = load_split_dataset()
@@ -33,7 +59,14 @@ if __name__ == "__main__":
     #Aquest model confon apple_cider_rust amb complex, els intercanvia amb 99% d'accuracy
     dense_net = load_model("dense_net.h5")
 
-    random_sample_test(dense_net)
+
+    dense_net_joint = load_model("efn_joint_2daug.h5")
+    history_dense_net = read_log('efn_joint_2daug.log')
+
+    random_sample_test_joint(dense_net_joint)
+    
+
+    #random_sample_test(dense_net)
 
 
 

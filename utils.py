@@ -89,3 +89,7 @@ def normalise_from_dataset_joint(dataset: pd.DataFrame) -> pd.DataFrame:
     
 def load_model(file_name: str)-> tf.keras.Sequential:
     return tf.keras.models.load_model("models/" + file_name) 
+
+# To be tested
+def read_log(file_name):
+    return pd.read_csv('models/' + file_name, sep=',', engine='python')
