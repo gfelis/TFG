@@ -25,7 +25,6 @@ def save_distribution(df: pd.DataFrame, out_file: str) -> None:
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.title('Category distribution')
 
-    # Add percentage annotations
     for p in ax.patches:
         width = p.get_width()
         height = p.get_height()
@@ -36,7 +35,6 @@ def save_distribution(df: pd.DataFrame, out_file: str) -> None:
     plt.savefig(OUT_PATH + out_file, dpi=300, bbox_inches='tight')
 
 
-#Need to update validation and training types annotations
 def save_training_curves(training, validation, title: str, epochs: int) -> None:
 
     fig = go.Figure()
@@ -120,14 +118,14 @@ def save_samples(labels_df, dataset, out_file):
 def save_test_results(out_file, correct=[1517, 1506, 11, 0], incorrect=[346, 198, 125, 23]):
     labels = ['Total', '1 label samples', '2 label samples', '3 label samples']
 
-    x = np.arange(len(labels))  # the label locations
-    width = 0.35  # the width of the bars
+    x = np.arange(len(labels))
+    width = 0.35
 
     fig, ax = plt.subplots()
     ax.bar(x - width/2, correct, width, label='Correctly predicted')
     ax.bar(x + width/2, incorrect, width, label='Incorrectly predicted')
 
-    # Add some text for labels, title and custom x-axis tick labels, etc.
+
     ax.set_ylabel('Number of samples')
     ax.set_title('Performance by number of labels')
     ax.set_xticks(x)

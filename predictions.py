@@ -1,3 +1,4 @@
+from random import sample
 from utils import *
 from visuals import save_test_results
 
@@ -19,17 +20,35 @@ def find_second_max(list):
                 m2 = x
     return m2 if count >= 2 else None
 
+def find_maximums(list):
+    max1, max2, max3= 0, 0, 0	  
+    for i in list:	
+        if i > max1:	
+            max3 = max2 
+            max2 = max1 
+            max1 = i 
+        elif i > max2:	
+            max3 = max2 
+            max2 = i 
+        elif i > max3:	
+            max3 = i 
+    return max2, max3
+
 def get_class(prediction: np.ndarray):
     classes = pd.Index(['rust', 'powdery_mildew', 'frog_eye_leaf_spot', 'complex', 'scab', 'healthy'])
     percentage = prediction.max()
     class_index = np.where(prediction == percentage)[0][0]
-    if percentage <= 0.55:
-        second_percentage = find_second_max(prediction)
-        second_index = np.where(prediction == second_percentage)[0][0]
-        return (percentage, second_percentage), classes[class_index] + ' ' + classes[second_index], prediction
+    if percentage <= 0.75:
+        second_percentage, third_percentage = find_maximums(prediction)
+        if percentage - second_percentage <= 0.25:
+            second_index = np.where(prediction == second_percentage)[0][0]
+            if second_percentage - third_percentage <= 0.15:
+                third_index = np.where(prediction == third_percentage)[0][0]
+                return (percentage, second_percentage, third_percentage), classes[class_index] + ' ' + classes[second_index] + ' ' + classes[third_index], prediction
+            return (percentage, second_percentage), classes[class_index] + ' ' + classes[second_index], prediction
     return [percentage], classes[class_index], prediction
             
-def random_sample_test_joint(model, sample_len=10, seed=10):
+def random_sample_test_joint(model, output_file, sample_len=10, seed=10):
     random.seed(seed)
     test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in random.sample(list(norm_test['image'].values), sample_len)]
     
@@ -68,8 +87,12 @@ def random_sample_test_joint(model, sample_len=10, seed=10):
             print(f'Predicted: {label_predicted} with {accuracy}, other predictions: {rest}')
             print(f'Correct labels are: {expected_classes} ')
 
+    save_test_results(output_file, (correctly_predicted, one_label_correctly, two_labels_correctly, three_labels_correctly),
+                                    (incorrectly_predicted, one_label_incorrectly, two_labels_incorrectly, three_labels_incorrectly))
+
     return (correctly_predicted, one_label_correctly, two_labels_correctly, incorrectly_predicted, 
     one_label_incorrectly, two_labels_incorrectly, three_labels_correctly, three_labels_incorrectly)
+
 
 def full_test_joint(model, output_file):
     test_images_paths = [TRAIN_IMAGES_FOLDER + img for img in list(norm_test['image'].values)]
@@ -122,7 +145,7 @@ if __name__ == "__main__":
     history_dense_net = read_log('efn_joint_2daug.log')
 
     
-    statistics = full_test_joint(dense_net)
+    statistics = full_test_joint(dense_net, "relative_distance_approach_2")
 
 
     print(f'Total Hits: {statistics[0]} Total Miss: {statistics[3]}')
