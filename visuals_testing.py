@@ -11,11 +11,12 @@ if __name__ == '__main__':
     norm_test = normalise_from_dataset_joint(test)
     norm_data = normalise_from_dataset_joint(data)
     
-    visuals.save_distribution(norm_train, "norm_train.png")
-    visuals.save_distribution(norm_test, "norm_test.png")
-    visuals.save_distribution(norm_data, "norm_data.png")
+    #visuals.save_distribution(norm_train, "norm_train.png")
+    #visuals.save_distribution(norm_test, "norm_test.png")
+    #visuals.save_distribution(norm_data, "norm_data.png")
 
     
-    visuals.save_samples(data, norm_data, "samples")
+    #visuals.save_samples(data, norm_data, "samples")
 
 
+    visuals.save_test_results("dense55ruleresults")

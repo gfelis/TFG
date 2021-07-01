@@ -115,3 +115,28 @@ def save_samples(labels_df, dataset, out_file):
             axes[row, col].annotate(images[row+col*3][0][0], (width*0.5, height*1.15), annotation_clip=False, ha='center')
 
     plt.savefig(OUT_PATH + out_file, dpi=300, bbox_inches='tight')
+
+
+def save_test_results(out_file, correct=[1517, 1506, 11, 0], incorrect=[346, 198, 125, 23]):
+    labels = ['Total', '1 label samples', '2 label samples', '3 label samples']
+
+    x = np.arange(len(labels))  # the label locations
+    width = 0.35  # the width of the bars
+
+    fig, ax = plt.subplots()
+    ax.bar(x - width/2, correct, width, label='Correctly predicted')
+    ax.bar(x + width/2, incorrect, width, label='Incorrectly predicted')
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Number of samples')
+    ax.set_title('Performance by number of labels')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+
+    
+    for i in range(len(x)):
+        plt.text(i - width, correct[i] + width*1.5, correct[i])
+        plt.text(i + width*0.25, incorrect[i] + width*1.5, incorrect[i])
+
+    plt.savefig(OUT_PATH + out_file, dpi=300, bbox_inches='tight')

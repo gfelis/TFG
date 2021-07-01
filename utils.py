@@ -14,24 +14,11 @@ TEST_IMAGES_FOLDER = "./data/test_images/"
 TRAIN_CSV = "data/train.csv"
 
 
-def init_hparams():
-    parser = ArgumentParser(add_help=False)
-    parser.add_argument("-mdl", "--model_file", type=str, default="models/dense_net.h5")
-    parser.add_argument("--seed", type=int, default=2020)
-   
-    try:
-        hparams = parser.parse_args()
-    except:
-        hparams = parser.parse_args([])
-
-    hparams.image_size = [int(size) for size in hparams.image_size]
-    return hparams
-
 def seed_reproducer(seed=2021):
     np.random.seed(seed)
     random.seed(seed)
 
-def load_split_dataset(frac: float=0.05) -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]":
+def load_split_dataset(frac: float=0.1) -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]":
     data = pd.read_csv(TRAIN_CSV)
     seed_reproducer()
     state = random.randint(0, 10000)
@@ -90,6 +77,5 @@ def normalise_from_dataset_joint(dataset: pd.DataFrame) -> pd.DataFrame:
 def load_model(file_name: str)-> tf.keras.Sequential:
     return tf.keras.models.load_model("models/" + file_name) 
 
-# To be tested
 def read_log(file_name):
     return pd.read_csv('models/' + file_name, sep=',', engine='python')

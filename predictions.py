@@ -6,23 +6,27 @@ def process(img):
 def predict(img, model):
     return model.layers[2](model.layers[1](model.layers[0](process(img)))).numpy()[0]
 
+def find_second_max(list):
+    count = 0
+    m1 = m2 = float('-inf')
+    for x in list:
+        count += 1
+        if x > m2:
+            if x >= m1:
+                m1, m2 = x, m1            
+            else:
+                m2 = x
+    return m2 if count >= 2 else None
+
 def get_class(prediction: np.ndarray):
-    classes = norm_test.columns[1:]
+    classes = pd.Index(['rust', 'powdery_mildew', 'frog_eye_leaf_spot', 'complex', 'scab', 'healthy'])
     percentage = prediction.max()
     class_index = np.where(prediction == percentage)[0][0]
-    return percentage, classes[class_index], prediction
-
-def random_sample_test(model, sample_len=10):
-    test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in random.sample(list(norm_test['image'].values), sample_len)]
-    test_images = [read_image(path) for path in test_images_paths]
-    
-    for index, image in enumerate(test_images):  
-            prediction = predict(image, model)
-            accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
-            image_id = test_images_paths[index].split("/")[3]
-            print(f'Image with id: {image_id} is predicted as: {label_predicted} with {accuracy} accuracy.')
-            expected_class = data.loc[data['image'] == image_id]['labels'].values
-            print(f'Image with id: {image_id} expected class is: {expected_class}.')
+    if percentage <= 0.55:
+        second_percentage = find_second_max(prediction)
+        second_index = np.where(prediction == second_percentage)[0][0]
+        return (percentage, second_percentage), classes[class_index] + ' ' + classes[second_index], prediction
+    return [percentage], classes[class_index], prediction
 
 # To implement, how to count multiple predicted classes
 def full_test_joint(model):
@@ -37,36 +41,110 @@ def full_test_joint(model):
             print(f'Predicted: {label_predicted} with {accuracy}, other predictions: {rest}')
             print(f'Correct labels are: {expected_classes} ')
             
-def random_sample_test_joint(model, sample_len=10):
+def random_sample_test_joint(model, sample_len=10, seed=10):
+    random.seed(seed)
     test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in random.sample(list(norm_test['image'].values), sample_len)]
-    test_images = [read_image(path) for path in test_images_paths]
     
-    for index, image in enumerate(test_images):  
+    correctly_predicted = 0
+    incorrectly_predicted = 0
+    one_label_correctly = 0
+    one_label_incorrectly = 0
+    two_labels_correctly = 0
+    two_labels_incorrectly = 0
+    three_labels_correctly = 0
+    three_labels_incorrectly = 0
+
+    for index, path in enumerate(test_images_paths):  
+            image = read_image(path)
             prediction = predict(image, model)
             accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
             image_id = test_images_paths[index].split("/")[3]
-            expected_classes = data.loc[data['image'] == image_id]['labels'].values
+            expected_classes = data.loc[data['image'] == image_id]['labels'].values[0]
+
+            labels = set(label_predicted.split())
+            correct_labels = set(expected_classes.split())
+
+            if labels == correct_labels:
+                correctly_predicted+=1
+                if len(correct_labels) == 3: three_labels_correctly+=1
+                if len(correct_labels) == 2: two_labels_correctly+=1
+                if len(correct_labels) == 1: one_label_correctly+=1
+            else:
+                incorrectly_predicted+=1
+                if len(correct_labels) == 3: three_labels_incorrectly+=1
+                if len(correct_labels) == 2: two_labels_incorrectly+=1
+                if len(correct_labels) == 1: one_label_incorrectly+=1
+                
+
             print('====================')
             print(f'Predicted: {label_predicted} with {accuracy}, other predictions: {rest}')
             print(f'Correct labels are: {expected_classes} ')
 
+    return (correctly_predicted, one_label_correctly, two_labels_correctly, incorrectly_predicted, 
+    one_label_incorrectly, two_labels_incorrectly, three_labels_correctly, three_labels_incorrectly)
+
+def full_test_joint(model, output_file):
+    test_images_paths = [TRAIN_IMAGES_FOLDER + img for img in list(norm_test['image'].values)]
+    
+    correctly_predicted = 0
+    incorrectly_predicted = 0
+    one_label_correctly = 0
+    one_label_incorrectly = 0
+    two_labels_correctly = 0
+    two_labels_incorrectly = 0
+    three_labels_correctly = 0
+    three_labels_incorrectly = 0
+    
+
+    for index, path in enumerate(test_images_paths):
+            image = read_image(path)
+            print("Processing: " + str(index) + "/" + str(len(test_images_paths)))
+            prediction = predict(image, model)
+            accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
+            image_id = test_images_paths[index].split("/")[3]
+            expected_classes = data.loc[data['image'] == image_id]['labels'].values[0]
+
+            labels = set(label_predicted.split())
+            correct_labels = set(expected_classes.split())
+
+            if labels == correct_labels:
+                correctly_predicted+=1
+                if len(correct_labels) == 3: three_labels_correctly+=1
+                if len(correct_labels) == 2: two_labels_correctly+=1
+                if len(correct_labels) == 1: one_label_correctly+=1
+            else:
+                incorrectly_predicted+=1
+                if len(correct_labels) == 3: three_labels_incorrectly+=1
+                if len(correct_labels) == 2: two_labels_incorrectly+=1
+                if len(correct_labels) == 1: one_label_incorrectly+=1        
+
+    f = open(output_file + '.txt', "w")
+    f.write(f'Total Hits: {correctly_predicted} Total Miss: {incorrectly_predicted}')
+    f.write(f'One Hits: {one_label_correctly} One Miss: {one_label_incorrectly}')
+    f.write(f'Two Hits: {statistics[2]} Two Miss: {statistics[5]}')
+    f.write(f'Three Hits: {statistics[6]} Three Miss: {statistics[7]}')
+    f.close()   
+
+    return (correctly_predicted, one_label_correctly, two_labels_correctly, incorrectly_predicted, 
+    one_label_incorrectly, two_labels_incorrectly, three_labels_correctly, three_labels_incorrectly)
 
 if __name__ == "__main__":
     data, train, test = load_split_dataset()
-    norm_train = normalise_from_dataset_disjoint(train)
-    norm_test = normalise_from_dataset_disjoint(test)
+    norm_train = normalise_from_dataset_joint(train)
+    norm_test = normalise_from_dataset_joint(test)
 
-    #Aquest model confon apple_cider_rust amb complex, els intercanvia amb 99% d'accuracy
-    dense_net = load_model("dense_net.h5")
+    dense_net = load_model("dense_net_joint_2daug.h5")
 
-
-    dense_net_joint = load_model("efn_joint_2daug.h5")
     history_dense_net = read_log('efn_joint_2daug.log')
 
-    random_sample_test_joint(dense_net_joint)
     
+    statistics = full_test_joint(dense_net)
 
-    #random_sample_test(dense_net)
+
+    print(f'Total Hits: {statistics[0]} Total Miss: {statistics[3]}')
+    print(f'One Hits: {statistics[1]} One Miss: {statistics[4]}')
+    print(f'Two Hits: {statistics[2]} Two Miss: {statistics[5]}')
+    print(f'Three Hits: {statistics[6]} Three Miss: {statistics[7]}')
 
 
 
