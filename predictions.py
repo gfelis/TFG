@@ -1,4 +1,5 @@
 from utils import *
+from visuals import save_test_results
 
 def process(img):
     return cv2.resize(img/255.0, (512, 512)).reshape(-1, 512, 512, 3)
@@ -27,19 +28,6 @@ def get_class(prediction: np.ndarray):
         second_index = np.where(prediction == second_percentage)[0][0]
         return (percentage, second_percentage), classes[class_index] + ' ' + classes[second_index], prediction
     return [percentage], classes[class_index], prediction
-
-# To implement, how to count multiple predicted classes
-def full_test_joint(model):
-    test_images_paths = [TRAIN_IMAGES_FOLDER + path for path in (list(norm_test['image'].values))]
-    test_images = [read_image(path) for path in test_images_paths]
-    for index, image in enumerate(test_images):
-            prediction = predict(image, model)
-            accuracy, label_predicted, rest = get_class(prediction) #rest of probabilities of classes in rest
-            image_id = test_images_paths[index].split("/")[3]
-            expected_classes = data.loc[data['image'] == image_id]['labels'].values
-            print('====================')
-            print(f'Predicted: {label_predicted} with {accuracy}, other predictions: {rest}')
-            print(f'Correct labels are: {expected_classes} ')
             
 def random_sample_test_joint(model, sample_len=10, seed=10):
     random.seed(seed)
@@ -118,12 +106,8 @@ def full_test_joint(model, output_file):
                 if len(correct_labels) == 2: two_labels_incorrectly+=1
                 if len(correct_labels) == 1: one_label_incorrectly+=1        
 
-    f = open(output_file + '.txt', "w")
-    f.write(f'Total Hits: {correctly_predicted} Total Miss: {incorrectly_predicted}')
-    f.write(f'One Hits: {one_label_correctly} One Miss: {one_label_incorrectly}')
-    f.write(f'Two Hits: {statistics[2]} Two Miss: {statistics[5]}')
-    f.write(f'Three Hits: {statistics[6]} Three Miss: {statistics[7]}')
-    f.close()   
+    save_test_results(output_file, (correctly_predicted, one_label_correctly, two_labels_correctly, three_labels_correctly),
+                                    (incorrectly_predicted, one_label_incorrectly, two_labels_incorrectly, three_labels_incorrectly))
 
     return (correctly_predicted, one_label_correctly, two_labels_correctly, incorrectly_predicted, 
     one_label_incorrectly, two_labels_incorrectly, three_labels_correctly, three_labels_incorrectly)
