@@ -1,6 +1,6 @@
 from random import sample
 from utils import *
-from visuals import save_test_results
+from visuals import save_test_results, save_training_curves
 
 def process(img):
     return cv2.resize(img/255.0, (512, 512)).reshape(-1, 512, 512, 3)
@@ -142,16 +142,17 @@ if __name__ == "__main__":
 
     dense_net = load_model("dense_net_joint_2daug.h5")
 
-    history_dense_net = read_log('efn_joint_2daug.log')
+    log = read_log('dense_net_joint_2daug.log')
+    save_training_curves(log['categorical_accuracy'], log['val_categorical_accuracy'], 'DenseNet' , 20)
 
     
-    statistics = full_test_joint(dense_net, "relative_distance_approach_2")
+    #statistics = full_test_joint(dense_net, "relative_distance_approach_2")
 
 
-    print(f'Total Hits: {statistics[0]} Total Miss: {statistics[3]}')
-    print(f'One Hits: {statistics[1]} One Miss: {statistics[4]}')
-    print(f'Two Hits: {statistics[2]} Two Miss: {statistics[5]}')
-    print(f'Three Hits: {statistics[6]} Three Miss: {statistics[7]}')
+    #print(f'Total Hits: {statistics[0]} Total Miss: {statistics[3]}')
+    #print(f'One Hits: {statistics[1]} One Miss: {statistics[4]}')
+    #print(f'Two Hits: {statistics[2]} Two Miss: {statistics[5]}')
+    #print(f'Three Hits: {statistics[6]} Three Miss: {statistics[7]}')
 
 
 

@@ -1,9 +1,8 @@
+import random
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-import plotly.figure_factory as ff
 from plotly.subplots import make_subplots
 import utils
 
@@ -12,6 +11,8 @@ Only use with normalised datasets
 """
 
 OUT_PATH = "out/"
+DUPLICATES_CSV = "data/duplicates.csv"
+TRAIN_IMAGES_FOLDER = "./data/train_images/"
 
 def save_distribution(df: pd.DataFrame, out_file: str) -> None:
     fig = plt.figure()
@@ -136,5 +137,31 @@ def save_test_results(out_file, correct=[1517, 1506, 11, 0], incorrect=[346, 198
     for i in range(len(x)):
         plt.text(i - width, correct[i] + width*1.5, correct[i])
         plt.text(i + width*0.25, incorrect[i] + width*1.5, incorrect[i])
+
+    plt.savefig(OUT_PATH + out_file, dpi=300, bbox_inches='tight')
+
+def visualize_duplicates(dataset, out_file: str, sample_len):
+
+    with open(DUPLICATES_CSV, 'r') as file:
+        duplicates = [x.strip().split(',') for x in file.readlines()]
+
+    figure, axes = plt.subplots(sample_len, 2, figsize=[7, 3*sample_len])
+
+    images = []
+    for row in random.sample(duplicates,sample_len):
+        for image_id in row:
+            images.append((image_id, utils.read_image(utils.TRAIN_IMAGES_FOLDER + image_id)))
+
+    cols, rows = 2, sample_len
+
+    for col in range(cols):
+        for row in range(rows):
+            image_id = images[row*2+col][0]
+            image = images[row*2+col][1]
+            axes[row, col].imshow(image)
+            labels =  dataset.loc[dataset['image'] == image_id]['labels'].values[0]
+            axes[row, col].set_title(f'{image_id} - {labels}')
+            axes[row, col].axis('off')
+        
 
     plt.savefig(OUT_PATH + out_file, dpi=300, bbox_inches='tight')
