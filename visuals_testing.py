@@ -22,4 +22,4 @@ if __name__ == '__main__':
     visuals.save_test_results("dense55ruleresults")
 
     # Visualizing some duplicates that are being dropped
-    visuals.visualize_duplicates(data, "test", 3)
+    visuals.visualize_duplicates(data, "duplicates", 3)

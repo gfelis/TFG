@@ -3,3 +3,4 @@ data/test_images
 .vscode/
 __pycache__
 out/
+models/

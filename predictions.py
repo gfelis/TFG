@@ -35,7 +35,7 @@ def find_maximums(list):
     return max2, max3
 
 def get_class(prediction: np.ndarray):
-    classes = pd.Index(['rust', 'powdery_mildew', 'frog_eye_leaf_spot', 'complex', 'scab', 'healthy'])
+    classes = pd.Index(['frog_eye_leaf_spot', 'healthy', 'scab', 'complex', 'powdery_mildew', 'rust'])
     percentage = prediction.max()
     class_index = np.where(prediction == percentage)[0][0]
     if percentage <= 0.75:
@@ -140,13 +140,14 @@ if __name__ == "__main__":
     norm_train = normalise_from_dataset_joint(train)
     norm_test = normalise_from_dataset_joint(test)
 
-    dense_net = load_model("dense_net_joint_2daug.h5")
+    dense_net = load_model("dense_net_joint_2daug_dedup.h5")
 
-    log = read_log('dense_net_joint_2daug.log')
-    save_training_curves(log['categorical_accuracy'], log['val_categorical_accuracy'], 'DenseNet' , 20)
+    log = read_log('dense_net_joint_2daug_dedup.log')
+    save_training_curves(log['categorical_accuracy'], log['val_categorical_accuracy'], 'DenseNet sense duplicació' , 20)
 
     
-    #statistics = full_test_joint(dense_net, "relative_distance_approach_2")
+    statistics = random_sample_test_joint(dense_net, "single_test", 1, 10)
+    statistics2 = random_sample_test_joint(dense_net, "ten_test", 10, 20)
 
 
     #print(f'Total Hits: {statistics[0]} Total Miss: {statistics[3]}')
